@@ -1,5 +1,5 @@
-conda create -n TextMEF python=3.8.18
-conda activate TextMEF
+conda create -n SPRFusion python=3.8.18
+conda activate SPRFusion
 conda install cudatoolkit==11.8 -c nvidia
 pip install torch==1.13.0 torchvision==0.14.0 torchaudio==0.13.0 --extra-index-url https://download.pytorch.org/whl/cu117
 conda install -c "nvidia/label/cuda-11.8.0" cuda-nvcc
