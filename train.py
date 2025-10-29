@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='PyTorch implementation of TextMEF')
 
-    parser.add_argument('--task_name', type=str, default="train1") 
+    parser.add_argument('--task_name', type=str, default="train0") 
     parser.add_argument('--train_stage', type=str, default='joint', choices=['fusion', 'align', 'joint']) 
     parser.add_argument('--lowlight_images_path', type=str, default="Dataset/train_data/SICE/trainA/") 
     parser.add_argument('--overlight_images_path', type=str, default="Dataset/train_data/SICE/trainB/")
@@ -158,10 +158,6 @@ if __name__ == "__main__":
     parser.add_argument('--display_epoch', type=int, default=20)
     parser.add_argument('--image_save_dir', type=str, default="./"+task_name+"/"+"images/")
     parser.add_argument('--model_save_dir', type=str, default="./"+task_name+"/"+"models/")
-    parser.add_argument('--load_pretrain_prompt', type=lambda x: (str(x).lower() == 'true'), default=True)
-    parser.add_argument('--local_prompt_pretrain_dir', type=str, default='pretrained_prompt/local.pth') #
-    parser.add_argument('--global_prompt_pretrain_dir', type=str, default='pretrained_prompt/global.pth') #
-    parser.add_argument('--mask_prompt_pretrain_dir', type=str, default='pretrained_prompt/mask.pth') #
     config = parser.parse_args()
 
     os.makedirs(config.image_save_dir, exist_ok=True)

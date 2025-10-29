@@ -8,11 +8,10 @@ from collections import OrderedDict
 from model.network import AttING, align_FG, DualAttModule, FuseModule
 from utils import utils_image as util
 from utils import utils_logger
-import time
 
 
 # --- Parse hyper-parameters  --- #
-parser = argparse.ArgumentParser(description='PyTorch implementation of TextMEF')
+parser = argparse.ArgumentParser(description='PyTorch implementation of SPRFusion')
 parser.add_argument('--input_u', help='directory of input folder', default='Dataset/SICE1024/')
 parser.add_argument('--input_o', help='directory of input folder', default='Dataset/SICE1024/')
 parser.add_argument('--gt', help='directory of gt folder', default='Dataset/test_data/SICE/trainC/')
