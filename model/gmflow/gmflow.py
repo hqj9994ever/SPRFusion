@@ -10,7 +10,6 @@ from .geometry import flow_warp
 from .utils import normalize_img, feature_add_position
 from model.SAM_encoder import get_encoder_base
 from utils import utils_image as util
-from .visualize_tool import visualize_mean_map
 
 
 class ResidualBlockNoBN(nn.Module):
@@ -127,7 +126,6 @@ class GMFlow(nn.Module):
                  **kwargs,
                  ):
         super(GMFlow, self).__init__()
-        self.count=0
         self.num_scales = num_scales
         self.feature_channels = feature_channels
         self.upsample_factor = upsample_factor
@@ -175,7 +173,7 @@ class GMFlow(nn.Module):
         return x
 
     def extract_feature(self, img0, img1, viz=True, viz_dir="viz", cmap="turbo"):
-        # 1) CNN backbone 特征（高→低 -> 反转为 低→高）
+        # 1) CNN backbone feature
         concat = torch.cat((img0, img1), dim=0)            # [2B, C, H, W]
         features = self.backbone(concat)                   # list of [2B, C, H, W]
         features = features[::-1]
@@ -184,49 +182,37 @@ class GMFlow(nn.Module):
         for i in range(len(features)):
             f = features[i]
             a, b = torch.chunk(f, 2, dim=0)               # a->img0, b->img1
-            feature0.append(a)                             # 低→高
+            feature0.append(a)                             
             feature1.append(b)
 
-        # 2) SAM encoder 语义特征
+        # 2) SAM encoder semantic feature
         img0_norm = self.sam_preprocess(img0)
         img1_norm = self.sam_preprocess(img1)
-        sam_feature0 = self.sam(img0_norm)                 # 形如 (B, C_s, h, w)
+        sam_feature0 = self.sam(img0_norm)                 
         sam_feature1 = self.sam(img1_norm)
 
-        # 3) 在融合前，先做“要可视化的三种张量”的快照（以两层为例）
-        #    CNN-only
+       
         cnn0_l0 = feature0[0]
         cnn0_l1 = feature0[1]
         cnn1_l0 = feature1[0]
         cnn1_l1 = feature1[1]
 
-        #    SAM (上采样到对应层的空间分辨率)
+        #  SAM (upsampling)
         sam0_l0 = self.up_layerx2(sam_feature0)
         sam0_l1 = self.up_layerx4(sam_feature0)
         sam1_l0 = self.up_layerx2(sam_feature1)
         sam1_l1 = self.up_layerx4(sam_feature1)
 
-        # 4) 融合
+        # 4) fusion
         fused0_l0 = self.CFM(torch.cat([cnn0_l0, sam0_l0], dim=1))
         fused0_l1 = self.CFM(torch.cat([cnn0_l1, sam0_l1], dim=1))
         fused1_l0 = self.CFM(torch.cat([cnn1_l0, sam1_l0], dim=1))
         fused1_l1 = self.CFM(torch.cat([cnn1_l1, sam1_l1], dim=1))
 
-        # 覆盖回列表（若你的后续网络需要这些）
         feature0[0] = fused0_l0
         feature0[1] = fused0_l1
         feature1[0] = fused1_l0
         feature1[1] = fused1_l1
-
-        # 5) 可视化（可选）
-        if viz:
-            H, W = img0.shape[-2], img0.shape[-1]
-            # img0 分支
-            visualize_mean_map(cnn0_l0, save_dir=viz_dir, tag="img0_cnn_l0", resize_to=(H, W), cmap_name=cmap, count=self.count)
-            visualize_mean_map(sam0_l0, save_dir=viz_dir, tag="img0_sam_l0", resize_to=(H, W), cmap_name=cmap, count=self.count)
-            visualize_mean_map(fused0_l0, save_dir=viz_dir, tag="img0_fused_l0", resize_to=(H, W), cmap_name=cmap, count=self.count)
-
-        self.count = self.count + 1
 
         return feature0, feature1
 

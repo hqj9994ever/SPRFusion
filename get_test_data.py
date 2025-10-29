@@ -153,9 +153,9 @@ def hyper_args():
 
     parser = argparse.ArgumentParser(description='Generating deformable testing data')
     # dataset
-    parser.add_argument('--under', default='pipeline/SICE/trainA/', type=pathlib.Path)
-    parser.add_argument('--over', default='pipeline/SICE/trainB/', type=pathlib.Path)
-    parser.add_argument('--dst', default='pipeline/SICE/', help='fuse image save folder', type=pathlib.Path)
+    parser.add_argument('--under', default='dataset/SICE/trainA/', type=pathlib.Path)
+    parser.add_argument('--over', default='dataset/SICE/trainB/', type=pathlib.Path)
+    parser.add_argument('--dst', default='dataset/SICE/', help='fuse image save folder', type=pathlib.Path)
 
     args = parser.parse_args()
     return args

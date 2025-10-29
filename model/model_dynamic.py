@@ -29,75 +29,6 @@ for para in model.parameters():
     para.requires_grad = False
 
 
-class TextEncoder(nn.Module):
-    def __init__(self, clip_model):
-        super().__init__()
-        self.transformer = clip_model.transformer
-        self.positional_embedding = clip_model.positional_embedding
-        self.ln_final = clip_model.ln_final
-        self.text_projection = clip_model.text_projection
-        self.dtype = clip_model.dtype
-
-    def forward(self, prompts, tokenized_prompts):
-
-        x = prompts + self.positional_embedding.type(self.dtype)
-
-        x = x.permute(1, 0, 2)  # NLD -> LND
-        x = self.transformer(x)
-        x = x.permute(1, 0, 2)  # LND -> NLD
-        x = self.ln_final(x).type(self.dtype)
-
-        x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
-        
-        return x
-
-
-class Prompts(nn.Module):
-    def __init__(self, initials=None, length_prompt=16):
-        super(Prompts, self).__init__()
-
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.length_prompt = length_prompt
-
-        print("The initial prompts are:", initials)
-        self.text_encoder = TextEncoder(model)
-        if isinstance(initials, list):
-            text = clip.tokenize(initials).to(self.device)
-            self.embedding_prompt = nn.Parameter(model.token_embedding(text).requires_grad_()).to(self.device)
-        elif isinstance(initials, str):
-            prompt_path = initials
-            state_dict = torch.load(prompt_path)
-            # create new OrderedDict that does not contain `module.`
-            new_state_dict = OrderedDict()
-            for k, v in state_dict.items():
-                name = k[7:] # remove `module.`
-                new_state_dict[name] = v
-            self.embedding_prompt = nn.Parameter(new_state_dict['embedding_prompt']).to(self.device)
-            self.embedding_prompt.requires_grad = True
-        else:
-            self.embedding_prompt = torch.nn.init.xavier_normal_(nn.Parameter(model.token_embedding([" ".join(["X"]*self.length_prompt), " ".join(["X"]*self.length_prompt), " ".join(["X"]*self.length_prompt)]).requires_grad_())).to(self.device)
-
-    def forward(self, tensor, flag=1):
-        tokenized_prompts = torch.cat([clip.tokenize(p) for p in [" ".join(["X"]*self.length_prompt)]]) # opt.length_prompt
-        text_features = self.text_encoder(self.embedding_prompt, tokenized_prompts) 
-        for i in range(tensor.shape[0]):
-            image_features = tensor[i]
-            nor = torch.norm(text_features, dim=-1, keepdim=True)
-            if flag == 0:
-                similarity = (100.0 * image_features @ (text_features/nor).T)#.softmax(dim=-1)
-                if(i == 0):
-                    probs = similarity
-                else:
-                    probs = torch.cat([probs, similarity], dim=0)
-            else:
-                similarity = (100.0 * image_features @ (text_features/nor).T).softmax(dim=-1)#/nor
-                if(i == 0):
-                    probs = similarity[:,0]
-                else:
-                    probs = torch.cat([probs, similarity[:,0]], dim=0)
-        return probs
-
-
 class ModelPlain(ModelBase):
     def __init__(self, opt):
         super(ModelPlain, self).__init__(opt)
@@ -118,7 +49,6 @@ class ModelPlain(ModelBase):
 
     def init_train(self, init_paths):
         self.load(init_paths)
-        # self.load_prompt()
         self.calculate_vectors()
         self.netA.train()
         self.netF.train()  
@@ -159,39 +89,6 @@ class ModelPlain(ModelBase):
             self.load_network(load_path_G, self.netG, strict=True, param_key='params')
 
 
-    def load_prompt(self):
-        # ----------------------------------------
-        # load pretrained prompt
-        # ----------------------------------------
-        if self.opt.load_pretrain_prompt == True: 
-            # l_learn_prompt=Prompts(self.opt.local_prompt_pretrain_dir, self.opt.length_prompt).to(self.device)
-            g_learn_prompt=Prompts(self.opt.global_prompt_pretrain_dir, self.opt.length_prompt).to(self.device)
-            # m_learn_prompt=Prompts(self.opt.mask_prompt_pretrain_dir, self.opt.length_prompt).to(self.device)
-        else: 
-            # l_learn_prompt=Prompts([" ".join(["X"]*(self.opt.length_prompt)), " ".join(["X"]*(self.opt.length_prompt)), " ".join(["X"]*(self.opt.length_prompt))], self.opt.length_prompt).to(self.device) 
-            g_learn_prompt=Prompts([" ".join(["X"]*(self.opt.length_prompt)), " ".join(["X"]*(self.opt.length_prompt)), " ".join(["X"]*(self.opt.length_prompt))], self.opt.length_prompt).to(self.device) 
-            # m_learn_prompt=Prompts([" ".join(["X"]*(self.opt.length_prompt)), " ".join(["X"]*(self.opt.length_prompt)), " ".join(["X"]*(self.opt.length_prompt))], self.opt.length_prompt).to(self.device) 
-
-        # for k, v in l_learn_prompt.named_parameters():
-        #     v.requires_grad_(False)
-        for k, v in g_learn_prompt.named_parameters():
-            v.requires_grad_(False)
-        # for k, v in m_learn_prompt.named_parameters():
-        #     v.requires_grad_(False)
-
-        # l_learn_prompt = DataParallel(l_learn_prompt)
-        g_learn_prompt = DataParallel(g_learn_prompt)
-        # m_learn_prompt = DataParallel(m_learn_prompt)
-
-        text_encoder = TextEncoder(model)
-        text_encoder = DataParallel(text_encoder)
-        tokenized_prompts = torch.cat([clip.tokenize(p) for p in [" ".join(["X"] * self.opt.length_prompt)]])
-        # l_embedding_prompt = l_learn_prompt.module.embedding_prompt 
-        g_embedding_prompt = g_learn_prompt.module.embedding_prompt
-        # m_embedding_prompt = m_learn_prompt.module.embedding_prompt
-        # self.l_text_features = text_encoder(l_embedding_prompt, tokenized_prompts)
-        self.g_text_features = text_encoder(g_embedding_prompt, tokenized_prompts)
-        # self.m_text_features = text_encoder(m_embedding_prompt, tokenized_prompts)
 
 
     def save_vectors(self, save_dir="model_zoo"):
@@ -342,7 +239,9 @@ class ModelPlain(ModelBase):
         if self.under_g is not None:
             self.output_g = self.netG(self.align_u_g, self.align_o_g)
 
-
+    # ----------------------------------------
+    # Pretrain Registration Model
+    # ----------------------------------------
     def optimize_parametersF(self):
         self.train_optimizerF.zero_grad()
         self.netA_forward()
@@ -355,27 +254,32 @@ class ModelPlain(ModelBase):
         self.log_dict['loss_flow'] = loss_flow.item()
         self.log_dict['loss_illumination'] = loss_illumination.item()
 
-
+    # ----------------------------------------
+    # Pretrain Fusion Model
+    # ----------------------------------------
     def optimize_parametersG(self):
         self.train_optimizerG.zero_grad()
         self.netD_forward()
         self.netG_forward()
         loss_content = self.L_content(self.output, self.gt)
-        # loss_sam = self.L_sam(self.output, self.gt)
-        # loss_clip_local = self.L_clip(self.output, self.residual_vector1, self.residual_vector2, self.thr1, self.thr2)
-        # loss_clip_global = self.L_clip(self.output_g, self.residual_vector1, self.residual_vector2, self.thr1, self.thr2)
+        loss_sam = self.L_sam(self.output, self.gt)
+        loss_clip_local = self.L_clip(self.output, self.residual_vector1, self.residual_vector2, self.thr1, self.thr2)
+        loss_clip_global = self.L_clip(self.output_g, self.residual_vector1, self.residual_vector2, self.thr1, self.thr2)
        
-        # loss_fusion = loss_content + 1e-3 * loss_clip_local + 1e-3 * loss_clip_global + 1e-2 * loss_sam
+        loss_fusion = loss_content + 1e-3 * loss_clip_local + 1e-3 * loss_clip_global + 1e-2 * loss_sam
         loss_fusion = loss_content 
 
         loss_fusion.backward()
         self.train_optimizerG.step()
         self.log_dict['loss_content'] = loss_content.item()
-        # self.log_dict['loss_clip_local'] = loss_clip_local.item()
-        # self.log_dict['loss_clip_global'] = loss_clip_global.item()
-        # self.log_dict['loss_sam'] = loss_sam.item()
+        self.log_dict['loss_clip_local'] = loss_clip_local.item()
+        self.log_dict['loss_clip_global'] = loss_clip_global.item()
+        self.log_dict['loss_sam'] = loss_sam.item()
         
         
+    # ----------------------------------------
+    # Joint Train
+    # ----------------------------------------
     def optimize_parametersGF(self):
         self.train_optimizerF.zero_grad()
         self.netA_forward()
@@ -390,7 +294,6 @@ class ModelPlain(ModelBase):
         loss_sam = self.L_sam(self.output, self.gt)
         loss_clip_local = self.L_clip(self.output, self.residual_vector1, self.residual_vector2, self.thr1, self.thr2)
         loss_clip_global = self.L_clip(self.output_g, self.residual_vector1, self.residual_vector2, self.thr1, self.thr2)
-        # loss_clip = self.L_clip(self.output, self.g_text_features)
        
         loss_fusion = loss_content + 1e-2 * loss_sam  + 1e-3 * loss_clip_global + 1e-3 * loss_clip_local 
 
@@ -408,7 +311,6 @@ class ModelPlain(ModelBase):
         loss_sam = self.L_sam(self.output, self.gt)
         loss_clip_local = self.L_clip(self.output, self.residual_vector1, self.residual_vector2, self.thr1, self.thr2)
         loss_clip_global = self.L_clip(self.output_g, self.residual_vector1, self.residual_vector2, self.thr1, self.thr2)
-        # loss_clip = self.L_clip(self.output, self.g_text_features)
        
         loss_fusion = loss_content + 1e-2 * loss_sam + 1e-3 * loss_clip_global + 1e-3 * loss_clip_local  
         loss_fusion.backward()
@@ -418,7 +320,6 @@ class ModelPlain(ModelBase):
         self.log_dict['loss_content'] = loss_content.item()
         self.log_dict['loss_clip_local'] = loss_clip_local.item()
         self.log_dict['loss_clip_global'] = loss_clip_global.item()
-        # self.log_dict['loss_clip'] = loss_clip.item()
         self.log_dict['loss_sam'] = loss_sam.item()
         
 
