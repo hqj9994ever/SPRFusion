@@ -87,7 +87,7 @@ class dataloader(Dataset):
 			img_lowlight = util.uint2tensor3(img_lowlight)
 			img_overlight = util.uint2tensor3(img_overlight)
 			
-			return patch_lowlight, patch_overlight, patch_normallight, patch_flow, img_lowlight, img_overlight, data_lowlight_path
+			return {'under': patch_lowlight, 'over': patch_overlight, 'gt': patch_normallight, 'flow_gt': patch_flow, 'Under': img_lowlight, 'Over': img_overlight, 'image_path': data_lowlight_path}
 		
 		elif self.phase == 'val':
 			data_lowlight_path = self.train_list1[index]
@@ -105,7 +105,7 @@ class dataloader(Dataset):
 			img_overlight = util.uint2tensor3(img_overlight)
 			img_normallight = util.uint2tensor3(img_normallight)
 
-			return img_lowlight, img_overlight, img_normallight, data_lowlight_path
+			return {'under': img_lowlight, 'over': img_overlight, 'gt': img_normallight, 'image_path': data_lowlight_path}
 
 	def __len__(self):
 		return len(self.train_list1)

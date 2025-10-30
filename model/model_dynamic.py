@@ -198,14 +198,15 @@ class ModelPlain(ModelBase):
         self.lr_schedulerG = lr_scheduler.MultiStepLR(self.train_optimizerG, milestones=[self.opt.num_epochs/4, self.opt.num_epochs/2, self.opt.num_epochs/4*3], gamma=0.4)    
 
 
-    def feed_data(self, under, over, gt, flow_gt=None, under_g=None, over_g=None, image_path=None):
-        self.under = under.to(self.device)
-        self.over = over.to(self.device)
-        self.under_g = under_g.to(self.device) if under_g is not None else None
-        self.over_g = over_g.to(self.device) if over_g is not None else None
-        self.gt = gt.to(self.device) if gt is not None else None
-        self.flow_gt = flow_gt.to(self.device) if flow_gt is not None else None
-        self.image_path = image_path if image_path is not None else None
+    def feed_data(self, data):
+        self.data = data
+        self.under = self.data['under'].to(self.device)
+        self.over = self.data['over'].to(self.device)
+        self.under_g = self.data['Under'].to(self.device) if self.data['Under'] is not None else None
+        self.over_g = self.data['Over'].to(self.device) if self.data['Over'] is not None else None
+        self.gt = self.data['gt'].to(self.device) if self.data['gt'] is not None else None
+        self.flow_gt = self.data['flow_gt'].to(self.device) if self.data['flow_gt'] is not None else None
+        self.image_path = self.data['img_path'] if self.data['img_path'] is not None else None
         if self.flow_gt is not None:
             self.over_warp = flow_warp2(self.over, self.flow_gt.permute(0, 2, 3, 1))
             self.over_g_warp = flow_warp2(self.over_g, self.flow_gt.permute(0, 2, 3, 1))

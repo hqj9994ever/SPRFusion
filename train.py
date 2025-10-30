@@ -64,11 +64,10 @@ def main(config):
         
         for iteration, train_data in enumerate(train_loader): 
             
-            under, over, gt, flow_gt, under_g, over_g, image_path = train_data
             # -------------------------------
             # 2) feed patch pairs
             # -------------------------------
-            model_plain.feed_data(under, over, gt, flow_gt, under_g, over_g, image_path)
+            model_plain.feed_data(train_data)
             # -------------------------------
             # 3) optimize parameters
             # -------------------------------
@@ -102,7 +101,7 @@ def main(config):
                 img_dir = os.path.join(config.image_save_dir, img_name)
                 util.mkdir(img_dir)
                 
-                model_plain.feed_data(under, over, gt)
+                model_plain.feed_data(test_data)
                 model_plain.test()
 
                 visuals = model_plain.current_visuals()
