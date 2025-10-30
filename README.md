@@ -1,5 +1,10 @@
 # SPRFusion
 ## Leveraging Semantic Priors for Robust Multi-Exposure Image Registration and Fusion [Under Review]
+## :memo: TODO
+- :white_check_mark: Release training and testing code.
+- :black_square_button: Release our training set and test set.
+- :black_square_button: Release pretrained checkpoints.
+
 ## :monorail: Environment
 
 ```shell
