@@ -136,7 +136,7 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     task_name="train1"
 
-    parser = argparse.ArgumentParser(description='PyTorch implementation of TextMEF')
+    parser = argparse.ArgumentParser(description='PyTorch implementation of SPRFusion')
 
     parser.add_argument('--task_name', type=str, default="train0") 
     parser.add_argument('--train_stage', type=str, default='joint', choices=['fusion', 'align', 'joint']) 
@@ -147,7 +147,6 @@ if __name__ == "__main__":
     parser.add_argument('--test_lowlight_images_path', type=str, default="Dataset/test_data/real/under/") 
     parser.add_argument('--test_overlight_images_path', type=str, default="Dataset/test_data/real/over/") 
     parser.add_argument('--test_normallight_images_path', type=str, default="Dataset/test_data/real/gt/")
-    parser.add_argument('--length_prompt', type=int, default=16)
     parser.add_argument('--train_lr', type=float, default=1e-4)
     parser.add_argument('--num_epochs', type=int, default=1000)
     parser.add_argument('--train_batch_size', type=int, default=2)
