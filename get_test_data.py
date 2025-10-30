@@ -30,8 +30,8 @@ class getDeformableImages:
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         # deformable transforms
-        self.elastic = ElasticTransform(kernel_size=301, sigma=32)
-        self.affine  = AffineTransform(degrees=0, translate=0.05)
+        self.elastic = ElasticTransform(kernel_size=101, sigma=24)
+        self.affine  = AffineTransform(degrees=5, translate=0.1)
 
     @torch.no_grad()
     def __call__(self, under_folder: pathlib.Path, over_folder: pathlib.Path, dst: pathlib.Path):
