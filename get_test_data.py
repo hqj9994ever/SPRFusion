@@ -31,7 +31,7 @@ class getDeformableImages:
 
         # deformable transforms
         self.elastic = ElasticTransform(kernel_size=301, sigma=32)
-        self.affine  = AffineTransform(degrees=0, translate=0.03)
+        self.affine  = AffineTransform(degrees=0, translate=0.05)
 
     @torch.no_grad()
     def __call__(self, under_folder: pathlib.Path, over_folder: pathlib.Path, dst: pathlib.Path):
@@ -94,7 +94,7 @@ class getDeformableImages:
             np.save(dst / 'flow' / name_disp, disp_npy)
             # save deformable images
             self.imsave(under, dst / 'under', name)
-            self.imsave(over_warp, dst / 'over_warp', name)            
+            self.imsave(over_warp, dst / 'over', name)            
             # self.imsave(under_warp, dst / 'under_warp', name)
             # self.imsave(0.6*over_warp+0.4*under_warp, dst / 'fuse', name)
             self.imsave(warp_grid, dst / 'warp_grid', name)
