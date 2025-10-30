@@ -12,7 +12,7 @@ from PIL import Image
 from model.model_base import ModelBase
 from model.network import define_A, define_F, define_D, define_G
 
-from utils.utils_losses import L_clip_from_feature, IlluminationLoss, FlowLoss, MultiScaleSemanticLoss
+from utils.utils_losses import L_clip_from_feature, IlluminationLoss, FlowLoss, MultiLayerSemanticLoss
 from utils.utils import flow_warp2
 from utils import utils_image as util
 
@@ -154,7 +154,7 @@ class ModelPlain(ModelBase):
 
     def define_loss(self):
         self.L_clip = L_clip_from_feature().to(self.device)
-        self.L_sam = MultiScaleSemanticLoss().to(self.device)
+        self.L_sam = MultiLayerSemanticLoss().to(self.device)
         self.L_illumination = IlluminationLoss(weight_A=1.0, weight_B=1.0).to(self.device)
         self.L_flow = FlowLoss(gamma=0.9).to(self.device)
         self.L_content = nn.L1Loss().to(self.device)

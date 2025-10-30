@@ -190,9 +190,9 @@ class SAMFeatureExtractor(nn.Module):
         return [self.features[idx] for idx in self.feat_layers] 
 
 
-class MultiScaleSemanticLoss(nn.Module):
+class MultiLayerSemanticLoss(nn.Module):
     def __init__(self):
-        super(MultiScaleSemanticLoss, self).__init__()
+        super(MultiLayerSemanticLoss, self).__init__()
         self.sam_extractor = SAMFeatureExtractor()
         self.instancenorm = nn.InstanceNorm2d(256, affine=False)
         self.feature_loss = nn.MSELoss()
