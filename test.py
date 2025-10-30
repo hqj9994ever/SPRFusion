@@ -80,12 +80,9 @@ def inference(lowlight_image_path, overlight_image_path, normallight_image_path=
 	
 	identity_u, correct_u = model_A(data_lowlight)
 	identity_o, correct_o = model_A(data_overlight)
-	# util.imsave(util.tensor2uint(correct_o), 'over.png')
-	# util.imsave(util.tensor2uint(correct_u), 'under.png')
 
 	if args.use_align == True:
-		align_o, f_w, f_s = model_F(correct_o, correct_u, identity_o)
-		# align_o, f_w, f_s = model_F(data_overlight, data_lowlight, identity_o)
+		align_o, f_w, f_s = model_F(data_overlight, data_lowlight, identity_o)
 		align_u, align_o = model_D(identity_u, align_o)
 	else:
 		align_u, align_o = model_D(identity_u, identity_o)
