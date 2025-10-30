@@ -172,7 +172,7 @@ class GMFlow(nn.Module):
         x = (x * 255.0 - self.pixel_mean.to(x.device)) / self.pixel_std.to(x.device)
         return x
 
-    def extract_feature(self, img0, img1, viz=True, viz_dir="viz", cmap="turbo"):
+    def extract_feature(self, img0, img1):
         # 1) CNN backbone feature
         concat = torch.cat((img0, img1), dim=0)            # [2B, C, H, W]
         features = self.backbone(concat)                   # list of [2B, C, H, W]
