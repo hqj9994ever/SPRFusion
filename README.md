@@ -19,7 +19,7 @@ pip install causal_conv1d==1.1.1 # or download causal_conv1d-1.1.1+cu118torch1.1
 pip install mamba_ssm==1.1.1 # or download mamba_ssm-1.1.1+cu118torch1.13cxx11abiFALSE-cp38-cp38-linux_x86_64.whl from https://github.com/state-spaces/mamba/releases/tag/v1.1.1 to install manually.
 pip install -r requirements.txt
 ```
-After installing the mamba library, replace the file content of `mamba_ssm/ops/selective_scan_interface.py` with that of `selective_scan_interface.py` from [Vim](https://github.com/hustvl/Vim).
+Note: After installing the mamba library, replace the file content of `mamba_ssm/ops/selective_scan_interface.py` with that of `selective_scan_interface.py` from [Vim](https://github.com/hustvl/Vim).
 
 ## :tennis: Train
 1. Pretrained models
