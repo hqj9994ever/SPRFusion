@@ -71,8 +71,6 @@ class getDeformableImages:
             grid2 = grid2.unsqueeze(0).to(self.device)
             flow = flow - grid2
 
-            # under_warp = flow_warp2(under, flow)
-
             # draw grid
             img_grid = self._draw_grid(over.squeeze().cpu().numpy(), 24).to(self.device)
 
@@ -95,11 +93,8 @@ class getDeformableImages:
             # save deformable images
             self.imsave(under, dst / 'under', name)
             self.imsave(over_warp, dst / 'over', name)            
-            # self.imsave(under_warp, dst / 'under_warp', name)
-            # self.imsave(0.6*over_warp+0.4*under_warp, dst / 'fuse', name)
             self.imsave(warp_grid, dst / 'warp_grid', name)
             self.imsave(over_warp_grid, dst / 'over_warp_grid', name)
-            # self.imsave(over_raw_grid, dst / 'over_raw_grid', name)
 
 
     @staticmethod
