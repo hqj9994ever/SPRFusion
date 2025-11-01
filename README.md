@@ -40,9 +40,9 @@ python train.py --task_name train0 --train_stage 'joint' --num_epochs 1000
 
 ```shell
 # For static scenes
-python test.py --use_align False --need_H True (if GT exists)/ False
+python test.py --input_u 'path to ue image dir' --input_o 'path to oe image dir' --gt 'path to GT dir (if GT exists)' --need_H (if GT exists)
 # For dynamic scenes
-python test.py --use_align True --need_H True (if GT exists)/ False
+python test.py --input_u 'path to ue image dir' --input_o 'path to oe image dir' --gt 'path to GT dir (if GT exists)' --use_align --need_H (if GT exists)
 ```
 
 ## :email: Contact
