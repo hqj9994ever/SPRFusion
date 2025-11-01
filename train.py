@@ -134,7 +134,6 @@ def main(config):
 
 if __name__ == "__main__": 
     warnings.filterwarnings("ignore")
-    task_name="train1"
 
     parser = argparse.ArgumentParser(description='PyTorch implementation of SPRFusion')
 
@@ -154,9 +153,10 @@ if __name__ == "__main__":
     parser.add_argument('--patch_size', type=int, default=256)
     parser.add_argument('--num_workers', type=int, default=8)
     parser.add_argument('--display_epoch', type=int, default=20)
-    parser.add_argument('--image_save_dir', type=str, default="./"+task_name+"/"+"images/")
-    parser.add_argument('--model_save_dir', type=str, default="./"+task_name+"/"+"models/")
     config = parser.parse_args()
+
+    config.image_save_dir = os.path.join(config.task_name, 'images')
+    config.image_save_dir = os.path.join(config.task_name, 'models')
 
     os.makedirs(config.image_save_dir, exist_ok=True)
     os.makedirs(config.model_save_dir, exist_ok=True)
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     # configure logger
     # ----------------------------------------
     logger_name = 'train'
-    utils_logger.logger_info(logger_name, os.path.join(task_name, logger_name+'.log'))
+    utils_logger.logger_info(logger_name, os.path.join(config.task_name, logger_name+'.log'))
     logger = logging.getLogger(logger_name)
 
 
