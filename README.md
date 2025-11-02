@@ -21,6 +21,43 @@ pip install -r requirements.txt
 ```
 Note: After installing the mamba library, replace the file content of `mamba_ssm/ops/selective_scan_interface.py` with that of `selective_scan_interface.py` from [Vim](https://github.com/hustvl/Vim).
 
+#### 📂 Data Preparation
+
+You can download our training set and test set on [Baidu Netdisk](https://pan.baidu.com/s/18fz8JvgHQyW6pAPZNBT_Wg)(code:5pen) or [Google Drive](https://drive.google.com/drive/folders/1Xt2bGHzE5WPtI_c8lCDBn6UeB_iLHTf_?usp=sharing), or build your own training set and test set by running `get_test_data.py`.
+
+You should put the data in the correct place in the following form.
+
+```
+SPRFusion ROOT
+├─dataset 
+|    ├─test # test set
+|    │  ├─dynamic # dynamic scenes
+|    │  │  ├─real # real dynamic scenes
+|    │  │  │  ├─over
+|    │  │  │  └─under
+|    │  │  └─synthetic # synthetic dynamic scenes
+|    │  │      ├─gt
+|    │  │      ├─over
+|    │  │      └─under
+|    │  └─static # static scenes
+|    │      ├─31nogt
+|    │      │  ├─over
+|    │      │  └─under
+|    │      └─SICE
+|    │          ├─gt
+|    │          ├─over
+|    │          └─under
+|    └─train # training set
+|        ├─flow # generated deformation fields
+|        ├─trainA # under-exposed images
+|        ├─trainB # over-exposed images
+|        └─trainC # GT
+```
+
+#### :cookie: Pretrained Checkpoints
+
+[Baidu Netdisk](https://pan.baidu.com/s/18fz8JvgHQyW6pAPZNBT_Wg)(code:5pen) or [Google Drive](https://drive.google.com/drive/folders/1Xt2bGHzE5WPtI_c8lCDBn6UeB_iLHTf_?usp=sharing).
+
 ## :tennis: Train
 1. Pretrained models
 
