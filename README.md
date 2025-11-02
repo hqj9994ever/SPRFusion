@@ -2,8 +2,8 @@
 ## Leveraging Semantic Priors for Robust Multi-Exposure Image Registration and Fusion [Under Review]
 ## :memo: TODO
 - :white_check_mark: Release training and testing code.
-- :black_square_button: Release our training sets and test sets.
-- :black_square_button: Release pretrained checkpoints.
+- :white_check_mark: Release our training sets and test sets.
+- :white_check_mark: Release pretrained checkpoints.
 
 ## :monorail: Environment
 
