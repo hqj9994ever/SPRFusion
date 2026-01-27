@@ -105,7 +105,7 @@ class dataloader(Dataset):
 			img_overlight = util.uint2tensor3(img_overlight)
 			img_normallight = util.uint2tensor3(img_normallight)
 
-			return {'under': img_lowlight, 'over': img_overlight, 'gt': img_normallight, 'image_path': data_lowlight_path}
+			return {'under': img_lowlight, 'over': img_overlight, 'gt': img_normallight, 'img_path': data_lowlight_path}
 
 	def __len__(self):
 		return len(self.train_list1)
