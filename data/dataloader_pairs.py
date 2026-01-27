@@ -87,7 +87,7 @@ class dataloader(Dataset):
 			img_lowlight = util.uint2tensor3(img_lowlight)
 			img_overlight = util.uint2tensor3(img_overlight)
 			
-			return {'under': patch_lowlight, 'over': patch_overlight, 'gt': patch_normallight, 'flow_gt': patch_flow, 'Under': img_lowlight, 'Over': img_overlight, 'image_path': data_lowlight_path}
+			return {'under': patch_lowlight, 'over': patch_overlight, 'gt': patch_normallight, 'flow_gt': patch_flow, 'Under': img_lowlight, 'Over': img_overlight, 'img_path': data_lowlight_path}
 		
 		elif self.phase == 'val':
 			data_lowlight_path = self.train_list1[index]
