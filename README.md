@@ -61,7 +61,7 @@ Download the model weights on [Baidu Netdisk](https://pan.baidu.com/s/18fz8JvgHQ
 ## :tennis: Train
 1. Pretrained models
 
-    Before training, you need to download [MobileSAM](https://github.com/ChaoningZhang/MobileSAM/blob/master/weights/mobile_sam.pt) and put it in `model_zoo/ckpt/`.
+    Before training, you need to download [MobileSAM weights](https://github.com/ChaoningZhang/MobileSAM/blob/master/weights) and put it in `model_zoo/ckpt/`.
 
 ```shell
 # As an example
