@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='PyTorch implementation of SPRFusion')
 
-    parser.add_argument('--task_name', type=str, default="train0") 
+    parser.add_argument('--task_name', type=str, default="joint") 
     parser.add_argument('--train_stage', type=str, default='joint', choices=['fusion', 'align', 'joint']) 
     parser.add_argument('--lowlight_images_path', type=str, default="Dataset/train_data/SICE/trainA/") 
     parser.add_argument('--overlight_images_path', type=str, default="Dataset/train_data/SICE/trainB/")
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     parser.add_argument('--test_normallight_images_path', type=str, default="Dataset/test_data/real/gt/")
     parser.add_argument('--train_lr', type=float, default=1e-4)
     parser.add_argument('--num_epochs', type=int, default=1000)
-    parser.add_argument('--train_batch_size', type=int, default=2)
+    parser.add_argument('--train_batch_size', type=int, default=4)
     parser.add_argument('--val_batch_size', type=int, default=4)
     parser.add_argument('--patch_size', type=int, default=256)
     parser.add_argument('--num_workers', type=int, default=8)

@@ -8,8 +8,31 @@ from .transformer import FeatureTransformer, FeatureFlowAttention
 from .matching import global_correlation_softmax, local_correlation_softmax
 from .geometry import flow_warp
 from .utils import normalize_img, feature_add_position
-from model.SAM_encoder import get_encoder_base
+from model.SAM_encoder import get_encoder_base, get_encoder_tiny
 from utils import utils_image as util
+
+
+def weights_init(m):
+    if isinstance(m, nn.Conv2d):
+        nn.init.normal_(m.weight, 0.0, 0.02)
+        if m.bias is not None:
+            nn.init.constant_(m.bias, 0)
+
+    elif isinstance(m, nn.BatchNorm2d):
+        nn.init.normal_(m.weight, 1.0, 0.02)
+        nn.init.constant_(m.bias, 0)
+
+    elif isinstance(m, nn.Linear):
+        nn.init.normal_(m.weight, 0.0, 0.02)
+        if m.bias is not None:
+            nn.init.constant_(m.bias, 0)
+
+
+def init_except_sam(model):
+    for name, module in model.named_children():
+        if name == 'sam':
+            continue
+        module.apply(weights_init)
 
 
 class ResidualBlockNoBN(nn.Module):
@@ -122,7 +145,7 @@ class GMFlow(nn.Module):
                  num_transformer_layers=6,
                  ffn_dim_expansion=4,
                  num_head=1,
-                 sam_checkpoint='model_zoo/ckpt/sam_vit_b_01ec64.pth',
+                 sam_checkpoint='model_zoo/ckpt/mobile_sam.pt',
                  **kwargs,
                  ):
         super(GMFlow, self).__init__()
@@ -133,17 +156,18 @@ class GMFlow(nn.Module):
         self.num_transformer_layers = num_transformer_layers
         self.register_buffer("pixel_mean", torch.Tensor([123.675, 116.28, 103.53]).view(1, -1, 1, 1))
         self.register_buffer("pixel_std", torch.Tensor([58.395, 57.12, 57.375]).view(1, -1, 1, 1))
-        
-        self.up_layerx2 = nn.Sequential(
-            nn.Conv2d(256, 32, 3, 1, 1),
-            nn.Upsample(scale_factor=2, mode='bilinear'),
+
+        self.sam_proj_s8 = nn.Sequential(
+            nn.Conv2d(128, 32, 1, 1, 0),
+            nn.ReLU(inplace=True),
         )
-        self.up_layerx4 = nn.Sequential(
-            nn.Conv2d(256, 32, 3, 1, 1),
-            nn.Upsample(scale_factor=4, mode='bilinear'),
+
+        self.sam_proj_s4 = nn.Sequential(
+            nn.Conv2d(64, 32, 1, 1, 0),
+            nn.ReLU(inplace=True),
         )
         # SAM Image Encoder
-        self.sam = get_encoder_base(checkpoint=sam_checkpoint)
+        self.sam = get_encoder_tiny(checkpoint=sam_checkpoint)
         self.sam.eval()
         for param in self.sam.parameters():
             param.requires_grad = False
@@ -166,44 +190,49 @@ class GMFlow(nn.Module):
         self.upsampler = nn.Sequential(nn.Conv2d(2 + feature_channels, 256, 3, 1, 1),
                                        nn.ReLU(inplace=True),
                                        nn.Conv2d(256, upsample_factor ** 2 * 9, 1, 1, 0))
+        
+        init_except_sam(self)
+
 
     def sam_preprocess(self, x):
         # normalize to N(0, 1)
         x = (x * 255.0 - self.pixel_mean.to(x.device)) / self.pixel_std.to(x.device)
         return x
+    
 
     def extract_feature(self, img0, img1):
-        # 1) CNN backbone feature
-        concat = torch.cat((img0, img1), dim=0)            # [2B, C, H, W]
-        features = self.backbone(concat)                   # list of [2B, C, H, W]
+        # 1) CNN backbone 特征（高→低 -> 反转为 低→高）
+        concat = torch.cat((img0, img1), dim=0)
+        features = self.backbone(concat)
         features = features[::-1]
 
         feature0, feature1 = [], []
         for i in range(len(features)):
             f = features[i]
-            a, b = torch.chunk(f, 2, dim=0)               # a->img0, b->img1
-            feature0.append(a)                             
+            a, b = torch.chunk(f, 2, dim=0)
+            feature0.append(a)
             feature1.append(b)
 
-        # 2) SAM encoder semantic feature
+        # 2) MobileSAM multi-sacle feature
         img0_norm = self.sam_preprocess(img0)
         img1_norm = self.sam_preprocess(img1)
-        sam_feature0 = self.sam(img0_norm)                 
-        sam_feature1 = self.sam(img1_norm)
 
-       
-        cnn0_l0 = feature0[0]
-        cnn0_l1 = feature0[1]
-        cnn1_l0 = feature1[0]
-        cnn1_l1 = feature1[1]
+        sam0_s4, sam0_s8 = self.sam(img0_norm, return_two_stage=True)
+        sam1_s4, sam1_s8 = self.sam(img1_norm, return_two_stage=True)
 
-        #  SAM (upsampling)
-        sam0_l0 = self.up_layerx2(sam_feature0)
-        sam0_l1 = self.up_layerx4(sam_feature0)
-        sam1_l0 = self.up_layerx2(sam_feature1)
-        sam1_l1 = self.up_layerx4(sam_feature1)
+        # 3) CNN feature
+        cnn0_l0 = feature0[0]   # 1/8
+        cnn0_l1 = feature0[1]   # 1/4
+        cnn1_l0 = feature1[0]   # 1/8
+        cnn1_l1 = feature1[1]   # 1/4
 
-        # 4) fusion
+        # 4) SAM feature
+        sam0_l0 = self.sam_proj_s8(sam0_s8)   # 对齐 cnn_l0 (1/8)
+        sam0_l1 = self.sam_proj_s4(sam0_s4)   # 对齐 cnn_l1 (1/4)
+        sam1_l0 = self.sam_proj_s8(sam1_s8)
+        sam1_l1 = self.sam_proj_s4(sam1_s4)
+
+        # 5) fusion
         fused0_l0 = self.CFM(torch.cat([cnn0_l0, sam0_l0], dim=1))
         fused0_l1 = self.CFM(torch.cat([cnn0_l1, sam0_l1], dim=1))
         fused1_l0 = self.CFM(torch.cat([cnn1_l0, sam1_l0], dim=1))
@@ -215,6 +244,8 @@ class GMFlow(nn.Module):
         feature1[1] = fused1_l1
 
         return feature0, feature1
+    
+
 
     def upsample_flow(self, flow, feature, bilinear=False, upsample_factor=8,
                       ):

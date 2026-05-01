@@ -46,7 +46,6 @@ class ModelPlain(ModelBase):
         self.netG = self.model_to_device(self.netG)
 
 
-
     def init_train(self, init_paths):
         self.load(init_paths)
         self.calculate_vectors()
@@ -87,8 +86,6 @@ class ModelPlain(ModelBase):
         if load_path_G is not None:
             print('Loading model for G [{:s}] ...'.format(load_path_G))
             self.load_network(load_path_G, self.netG, strict=True, param_key='params')
-
-
 
 
     def save_vectors(self, save_dir="model_zoo"):

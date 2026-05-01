@@ -20,7 +20,7 @@ def define_A(in_channels, channels):
 
 def define_F():
     netF = align_FG()
-    netF.apply(weights_init)
+    # netF.apply(weights_init)
     return netF
 
 
@@ -361,9 +361,6 @@ class FuseModule(nn.Module):
 
         under_f = self.patch_unembed(under_f, (h, w))
         over_f = self.patch_unembed(over_f, (h, w))
-
-        under_f = align_u
-        over_f = align_o
 
         fusion_f = self.shallow_fusion(torch.cat([under_f, over_f], dim=1))
 

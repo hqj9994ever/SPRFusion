@@ -1,1 +1,1 @@
-from .SAM_encoder import get_encoder_base
+from .SAM_encoder import get_encoder_base, get_encoder_tiny, get_encoder

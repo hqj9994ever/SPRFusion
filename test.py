@@ -12,16 +12,16 @@ from utils import utils_logger
 
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='PyTorch implementation of SPRFusion')
-parser.add_argument('--input_u', help='directory of input folder', default='Dataset/SICE1024/')
-parser.add_argument('--input_o', help='directory of input folder', default='Dataset/SICE1024/')
-parser.add_argument('--gt', help='directory of gt folder', default='Dataset/test_data/SICE/trainC/')
+parser.add_argument('--input_u', help='directory of input folder', default='Dataset/test_data/SICE/trainA/')
+parser.add_argument('--input_o', help='directory of input folder', default='Dataset/test_data/SICE/trainB/')
+parser.add_argument('--gt', help='directory of gt folder', default='Dataset/test_data/SICE/trainC/trainC/')
 parser.add_argument('--output', help='directory of output folder', default='inference/')
 parser.add_argument('--use_align', help='use align or not', action='store_true', default=False)
 parser.add_argument('--need_H', help='have ground truth or not', action='store_true', default=False)
-parser.add_argument('--model_A_path', help='test ckpt path', default='model_zoo/sam+psp-ff+global+local/epoch_500_A.pth')
-parser.add_argument('--model_F_path', help='test ckpt path', default='model_zoo/sam+psp-ff+global+local/epoch_500_F.pth')
-parser.add_argument('--model_D_path', help='test ckpt path', default='model_zoo/sam+psp-ff+global+local/epoch_500_D.pth')
-parser.add_argument('--model_G_path', help='test ckpt path', default='model_zoo/sam+psp-ff+global+local/epoch_500_G.pth')
+parser.add_argument('--model_A_path', help='test ckpt path', default='model_zoo/epoch_800_A.pth')
+parser.add_argument('--model_F_path', help='test ckpt path', default='model_zoo/epoch_800_F.pth')
+parser.add_argument('--model_D_path', help='test ckpt path', default='model_zoo/epoch_800_D.pth')
+parser.add_argument('--model_G_path', help='test ckpt path', default='model_zoo/epoch_800_G.pth')
 
 args = parser.parse_args()
 
