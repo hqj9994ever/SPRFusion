@@ -1,5 +1,5 @@
 # SPRFusion
-## Leveraging Semantic Priors for Robust Multi-Exposure Image Registration and Fusion [Under Review]
+## Leveraging Semantic Priors for Robust Multi-Exposure Image Registration and Fusion [IEEE TIP 2026]
 ## :memo: TODO
 - :white_check_mark: Release training and testing code.
 - :white_check_mark: Release our training sets and test sets.
